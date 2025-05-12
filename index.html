@@ -49,6 +49,20 @@
       cursor: pointer;
       z-index: 10;
     }
+    .charizard {
+  position: absolute;
+  top: 100px;
+  left: 100vw;
+  width: 120px;
+  z-index: 1;
+  animation: volar-charizard 20s linear infinite;
+}
+
+@keyframes volar-charizard {
+  0% { left: 100vw; }
+  100% { left: -150px; }
+}
+
   </style>
 </head>
 <body>
@@ -59,6 +73,8 @@
   <div class="game-board">
     <img src="./img/2iiJ.gif" class="mario" />
     <img src="./img/clouds.png" class="clouds" style="position:absolute;top:0;width:100%;">
+    <img src="./img/xt.gif" class="charizard" />
+
   </div>
 
   <script>
