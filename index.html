@@ -66,9 +66,19 @@
   </style>
 </head>
 <body>
-
+    <select id="selectorMusica" style="
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    font-size: 18px;
+    padding: 6px 12px;
+    z-index: 20;
+  ">
+    <option value="audio/musica.mp3">🎧 Morocha - Luck Ra</option>
+    <option value="audio/musica2.mp3">🎧 Capaz - Alleh & Yorghaki</option>
+  </select>
   <button id="startButton">Iniciar Juego 🎵</button>
-  <audio id="musica" src="audio/musica.mp3"></audio>
+  <audio id="musica"></audio>
 
   <div class="game-board">
     <img src="./img/2iiJ.gif" class="mario" />
@@ -195,12 +205,15 @@ setTimeout(() => {
     }
 
     startButton.addEventListener("click", () => {
-      startButton.remove();
-      audioElement.play();
-      audioCtx.resume().then(() => {
-        detectarBeat();
-      });
-    });
+  const selector = document.getElementById("selectorMusica");
+  audioElement.src = selector.value;
+  startButton.remove();
+  selector.remove();
+  audioElement.play();
+  audioCtx.resume().then(() => {
+    detectarBeat();
+  });
+});
   </script>
 </body>
 </html>
