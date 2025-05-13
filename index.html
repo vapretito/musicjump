@@ -77,11 +77,29 @@
     <option value="audio/musica.mp3">🎧 Morocha - Luck Ra</option>
     <option value="audio/musica2.mp3">🎧 Capaz - Alleh & Yorghaki</option>
   </select>
+
+  <div id="selectorPersonaje" style="
+  position: absolute;
+  top: 70px;
+  left: 20px;
+  z-index: 20;
+  background: rgba(255,255,255,0.8);
+  padding: 10px;
+  border-radius: 10px;
+">
+  <label style="font-size: 16px;">👤 Elige tu personaje:</label><br>
+  <div style="display: flex; gap: 10px; margin-top: 5px;">
+    <img src="img/2iiJ.gif" class="preview-personaje" data-src="img/2iiJ.gif" title="Pikachu" style="width:50px; cursor:pointer; border: 2px solid transparent;">
+    <img src="img/33HU.gif" class="preview-personaje" data-src="img/33HU.gif" title="Mario retro" style="width:50px; cursor:pointer; border: 2px solid transparent;">
+    <img src="img/mario.gif" class="preview-personaje" data-src="img/mario.gif" title="Mario" style="width:50px; cursor:pointer; border: 2px solid transparent;">
+  </div>
+</div>
+
   <button id="startButton">Iniciar Juego 🎵</button>
   <audio id="musica"></audio>
 
   <div class="game-board">
-    <img src="./img/2iiJ.gif" class="mario" />
+    <img src="" class="mario" />
     <img src="./img/clouds.png" class="clouds" style="position:absolute;top:0;width:100%;">
     <img src="./img/xt.gif" class="charizard" />
 
@@ -203,17 +221,39 @@ setTimeout(() => {
   tubo.remove();
 }, 2500);
     }
+// Manejo de selección de personaje
+const personajes = document.querySelectorAll(".preview-personaje");
 
-    startButton.addEventListener("click", () => {
+personajes.forEach(img => {
+  img.addEventListener("click", () => {
+    personajes.forEach(p => p.style.border = "2px solid transparent");
+    img.style.border = "2px solid red";
+    const src = img.getAttribute("data-src");
+    mario.src = src;
+    mario.setAttribute("data-selected", "1");
+  });
+});
+
+startButton.addEventListener("click", () => {
+  if (!mario.getAttribute("data-selected")) {
+    alert("📢 Por favor, seleccioná un personaje antes de comenzar.");
+    return;
+  }
+
   const selector = document.getElementById("selectorMusica");
+  const selectorPersonaje = document.getElementById("selectorPersonaje");
+
   audioElement.src = selector.value;
   startButton.remove();
   selector.remove();
+  selectorPersonaje.remove();
+
   audioElement.play();
   audioCtx.resume().then(() => {
     detectarBeat();
   });
 });
+
   </script>
 </body>
 </html>
