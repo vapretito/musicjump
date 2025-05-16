@@ -134,7 +134,14 @@
     const startButton = document.getElementById("startButton");
     const mario = document.querySelector(".mario");
     const board = document.querySelector(".game-board");
+    
+    let juegoTerminado = false;
+    let tiempoVivo = 0;
+    let progreso = 0;
+    let intervaloTiempo;
+    const tiempoTotalNivel = 60; // segundos para 100%
 
+    
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     const source = audioCtx.createMediaElementSource(audioElement);
     const analyser = audioCtx.createAnalyser();
@@ -142,143 +149,188 @@
     analyser.connect(audioCtx.destination);
     analyser.fftSize = 256;
     const dataArray = new Uint8Array(analyser.frequencyBinCount);
-
+    
     let lastBeat = 0;
     const cooldown = 500;
-
+    
     function detectarBeat() {
-  analyser.getByteFrequencyData(dataArray);
-  const avg = dataArray.reduce((a, b) => a + b, 0) / dataArray.length;
-
-  console.log("Nivel de audio:", avg);
-
-  const ahora = Date.now();
-  if (avg > 100 && ahora - lastBeat > cooldown) {
-    lastBeat = ahora;
-    generarTubo(); // ✅ solo genera tubos
-    // ❌ NO MÁS saltarMario()
-  }
-
-  requestAnimationFrame(detectarBeat);
-}
-
-setInterval(() => {
-  const marioRect = mario.getBoundingClientRect();
-  const tubos = document.querySelectorAll('.pipe');
-
-  tubos.forEach(tubo => {
-    const tuboRect = tubo.getBoundingClientRect();
-
-    const colision =
-      tuboRect.left < marioRect.right &&
-      tuboRect.right > marioRect.left &&
-      tuboRect.bottom > marioRect.top &&
-      tuboRect.top < marioRect.bottom;
-
-    if (colision) {
-      tubo.style.animation = 'none';
-      tubo.style.left = tubo.offsetLeft + 'px';
-      mario.src = './img/game-over.png';
-      alert("¡Perdiste!");
-      location.reload(); // reiniciar juego
+      if (juegoTerminado) return;
+    
+      analyser.getByteFrequencyData(dataArray);
+      const avg = dataArray.reduce((a, b) => a + b, 0) / dataArray.length;
+    
+      if (avg > 100 && Date.now() - lastBeat > cooldown) {
+        lastBeat = Date.now();
+        generarTubo();
+      }
+    
+      requestAnimationFrame(detectarBeat);
     }
-  });
-}, 50);
-
-   // Función de salto
-   let jumping = false;
+    
+    function iniciarContador() {
+      const contenedor = document.createElement("div");
+      contenedor.id = "puntuacion";
+      contenedor.style.cssText = `
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        background: rgba(0,0,0,0.7);
+        color: white;
+        padding: 10px 15px;
+        font-size: 18px;
+        border-radius: 8px;
+        font-family: sans-serif;
+        z-index: 30;
+      `;
+      contenedor.innerHTML = `⏱️ Tiempo: <span id="tiempo">0</span>s<br>🎯 Progreso: <span id="progreso">0</span>%`;
+      document.body.appendChild(contenedor);
+    
+      intervaloTiempo = setInterval(() => {
+        if (juegoTerminado) return;
+    
+        tiempoVivo++;
+        progreso = Math.min(Math.floor((tiempoVivo / tiempoTotalNivel) * 100), 100);
+        document.getElementById("tiempo").textContent = tiempoVivo;
+        document.getElementById("progreso").textContent = progreso;
+      }, 1000);
+    }
+    
+    setInterval(() => {
+      if (juegoTerminado) return;
+    
+      const marioRect = mario.getBoundingClientRect();
+      const tubos = document.querySelectorAll('.pipe');
+    
+      tubos.forEach(tubo => {
+        const tuboRect = tubo.getBoundingClientRect();
+    
+        const colision =
+          tuboRect.left < marioRect.right &&
+          tuboRect.right > marioRect.left &&
+          tuboRect.bottom > marioRect.top &&
+          tuboRect.top < marioRect.bottom;
+    
+        if (colision) {
+          juegoTerminado = true;
+          tubo.style.animation = 'none';
+          tubo.style.left = tubo.offsetLeft + 'px';
+          mario.src = './img/XwI7.gif';
+          clearInterval(intervaloTiempo);
+          audioElement.pause();
+    
+          setTimeout(() => {
+            alert(`¡Perdiste!\nTiempo: ${tiempoVivo}s\nProgreso: ${progreso}%`);
+            location.reload();
+          }, 500);
+        }
+      });
+    }, 50);
+    
+    // Función de salto
+    let jumping = false;
 let velocity = 0;
-let gravity = -0.6; // gravedad *negativa* porque bottom crece al subir
+let gravity = -0.6;
+let jumpImpulse = 12;
 let position = 0;
 const suelo = 0;
 const saltoMax = 150;
+let bajando = false;
 
-function saltarMario() {
-  if (!jumping && position === suelo) {
-    velocity = 12; // impulso hacia arriba
+
+    function saltarMario() {
+  if (!jumping) {
+    velocity = jumpImpulse;
     jumping = true;
   }
 }
 
-function aplicarFisicaSalto() {
-  velocity += gravity;
-  position += velocity;
+    
+    function aplicarFisicaSalto() {
+  if (jumping) {
+    // Aceleración de bajada si se presiona la flecha abajo
+    if (bajando) {
+      velocity += gravity * 3; // caer más rápido
+    } else {
+      velocity += gravity;
+    }
 
-  // Limitar altura máxima del salto
-  if (position >= saltoMax) {
-    position = saltoMax;
-    velocity = 0;
+    position += velocity;
+
+    if (position <= suelo) {
+      position = suelo;
+      velocity = 0;
+      jumping = false;
+    }
+
+    mario.style.bottom = position + "px";
   }
 
-  // Evitar que caiga por debajo del suelo
-  if (position <= suelo) {
-    position = suelo;
-    velocity = 0;
-    jumping = false;
-  }
-
-  mario.style.bottom = position + "px";
   requestAnimationFrame(aplicarFisicaSalto);
 }
 
-requestAnimationFrame(aplicarFisicaSalto);
-
-
-
-// Evento de teclado: solo con la tecla ESPACIO
-document.addEventListener("keydown", (event) => {
+    
+    // Tecla ESPACIO para saltar
+    document.addEventListener("keydown", (event) => {
   if (event.code === "Space") {
     saltarMario();
+  } else if (event.code === "ArrowDown") {
+    bajando = true;
   }
 });
 
+document.addEventListener("keyup", (event) => {
+  if (event.code === "ArrowDown") {
+    bajando = false;
+  }
+});
 
     function generarTubo() {
+      if (juegoTerminado) return;
+    
       const tubo = document.createElement("img");
       tubo.src = "./img/fernet.png";
       tubo.classList.add("pipe");
       tubo.style.left = "100vw";
       board.appendChild(tubo);
-
-      // No eliminar tubos que podrían estar colisionando
-setTimeout(() => {
-  tubo.remove();
-}, 2500);
+    
+      setTimeout(() => {
+        tubo.remove();
+      }, 2500);
     }
-// Manejo de selección de personaje
-const personajes = document.querySelectorAll(".preview-personaje");
+    
+    // Selección de personaje
+    const personajes = document.querySelectorAll(".preview-personaje");
+    personajes.forEach(img => {
+      img.addEventListener("click", () => {
+        personajes.forEach(p => p.style.border = "2px solid transparent");
+        img.style.border = "2px solid red";
+        const src = img.getAttribute("data-src");
+        mario.src = src;
+        mario.setAttribute("data-selected", "1");
+      });
+    });
+    
+    startButton.addEventListener("click", () => {
+      if (!mario.getAttribute("data-selected")) {
+        alert("📢 Por favor, seleccioná un personaje antes de comenzar.");
+        return;
+      }
+    
+      document.getElementById("selectorMusica").remove();
+      document.getElementById("selectorPersonaje").remove();
+      document.getElementById("instrucciones").remove();
+      startButton.remove();
+    
+      audioElement.src = document.getElementById("selectorMusica")?.value || "audio/musica.mp3";
+      audioElement.play();
+      audioCtx.resume().then(() => {
+        detectarBeat();
+        iniciarContador();
+      });
+    });
+    aplicarFisicaSalto();
 
-personajes.forEach(img => {
-  img.addEventListener("click", () => {
-    personajes.forEach(p => p.style.border = "2px solid transparent");
-    img.style.border = "2px solid red";
-    const src = img.getAttribute("data-src");
-    mario.src = src;
-    mario.setAttribute("data-selected", "1");
-  });
-});
-
-startButton.addEventListener("click", () => {
-  if (!mario.getAttribute("data-selected")) {
-    alert("📢 Por favor, seleccioná un personaje antes de comenzar.");
-    return;
-  }
-
-  const selector = document.getElementById("selectorMusica");
-  const selectorPersonaje = document.getElementById("selectorPersonaje");
-
-  audioElement.src = selector.value;
-  startButton.remove();
-  selector.remove();
-  selectorPersonaje.remove();
-  document.getElementById("instrucciones").remove();
-
-  audioElement.play();
-  audioCtx.resume().then(() => {
-    detectarBeat();
-  });
-});
-
-  </script>
+    </script>
+    
 </body>
 </html>
