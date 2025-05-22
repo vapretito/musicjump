@@ -75,7 +75,7 @@
     z-index: 20;
   ">
     <option value="audio/musica.mp3">🎧 Morocha - Luck Ra</option>
-    <option value="audio/musica2.mp3">🎧 Capaz - Alleh & Yorghaki</option>
+    <option value="audio/musica2.mp3">🎧 Sunlight - Modestep </option>
   </select>
 
   <div id="selectorPersonaje" style="
@@ -311,23 +311,26 @@ document.addEventListener("keyup", (event) => {
     });
     
     startButton.addEventListener("click", () => {
-      if (!mario.getAttribute("data-selected")) {
-        alert("📢 Por favor, seleccioná un personaje antes de comenzar.");
-        return;
-      }
-    
-      document.getElementById("selectorMusica").remove();
-      document.getElementById("selectorPersonaje").remove();
-      document.getElementById("instrucciones").remove();
-      startButton.remove();
-    
-      audioElement.src = document.getElementById("selectorMusica")?.value || "audio/musica.mp3";
-      audioElement.play();
-      audioCtx.resume().then(() => {
-        detectarBeat();
-        iniciarContador();
-      });
-    });
+  if (!mario.getAttribute("data-selected")) {
+    alert("📢 Por favor, seleccioná un personaje antes de comenzar.");
+    return;
+  }
+
+  const cancionSeleccionada = document.getElementById("selectorMusica")?.value || "audio/musica.mp3";
+
+  document.getElementById("selectorMusica").remove();
+  document.getElementById("selectorPersonaje").remove();
+  document.getElementById("instrucciones").remove();
+  startButton.remove();
+
+  audioElement.src = cancionSeleccionada;
+  audioElement.play();
+  audioCtx.resume().then(() => {
+    detectarBeat();
+    iniciarContador();
+  });
+});
+
     aplicarFisicaSalto();
 
     </script>
