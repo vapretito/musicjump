@@ -76,6 +76,9 @@
   ">
     <option value="audio/musica.mp3">🎧 Morocha - Luck Ra</option>
     <option value="audio/musica2.mp3">🎧 Sunlight - Modestep </option>
+    <option value="audio/musica3.mp3">🎧 Drumfire - AI </option>
+    <option value="audio/musica4.mp3">🎧 AUGUST - AI </option>
+
   </select>
 
   <div id="selectorPersonaje" style="
@@ -113,6 +116,8 @@
   🔊 Elige tu canción favorita.<br>
   🧍‍♂️ Selecciona tu personaje.<br>
   ⌨️ Presiona <strong>ESPACIO</strong> para saltar.<br>
+  ⌨️ Presiona <strong>FLECHA ABAJO</strong> para bajar el personaje.<br>
+
   🚫 Evita chocar con los tubos.<br>
   🎵 El ritmo genera obstáculos.<br><br>
   ¡Buena suerte! 🍀
@@ -159,7 +164,7 @@
       analyser.getByteFrequencyData(dataArray);
       const avg = dataArray.reduce((a, b) => a + b, 0) / dataArray.length;
     
-      if (avg > 100 && Date.now() - lastBeat > cooldown) {
+      if (avg > 75 && Date.now() - lastBeat > cooldown) {
         lastBeat = Date.now();
         generarTubo();
       }
